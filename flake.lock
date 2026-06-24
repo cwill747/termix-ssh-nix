@@ -1,0 +1,44 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1781577229,
+        "narHash": "sha256-lrp67w8AulE9Ks53n27I45ADSzbOCn4H+CNW1Ck8B+8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "567a49d1913ce81ac6e9582e3553dd90a955875f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "termix-src": "termix-src"
+      }
+    },
+    "termix-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1782078011,
+        "narHash": "sha256-DXM0HkQ8eBep+YYFcGlUyqSV9ihkKfVtVR0wKuGUeTQ=",
+        "owner": "Termix-SSH",
+        "repo": "Termix",
+        "rev": "6194a58b1a9e3230696ae40e9440d3e57ffbf2ec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Termix-SSH",
+        "repo": "Termix",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
