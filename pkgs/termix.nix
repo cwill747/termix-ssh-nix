@@ -11,7 +11,7 @@
   src,
   # npmDepsHash for the npm dependency cache. Update with `nix build` and copy the
   # hash from the mismatch error, or run `prefetch-npm-deps package-lock.json`.
-  npmDepsHash ? "sha256-uXE7M8qRldFNCqfJwNkERqNdF3JXDcGltizECA3Ck2A=",
+  npmDepsHash ? "sha256-4WhjWOxOiclsYtTP4YRj/Lk6lqowsp+p6C2gj1buRW0=",
 }:
 
 let
@@ -20,7 +20,7 @@ in
 buildNpmPackage {
   pname = "termix";
   # Keep in sync with upstream package.json; surfaced as the app VERSION at runtime.
-  version = "2.4.1";
+  version = "2.5.0";
 
   inherit src npmDepsHash nodejs;
 
