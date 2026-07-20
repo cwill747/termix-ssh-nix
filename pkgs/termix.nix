@@ -11,7 +11,7 @@
   src,
   # npmDepsHash for the npm dependency cache. Update with `nix build` and copy the
   # hash from the mismatch error, or run `prefetch-npm-deps package-lock.json`.
-  npmDepsHash ? "sha256-4WhjWOxOiclsYtTP4YRj/Lk6lqowsp+p6C2gj1buRW0=",
+  npmDepsHash ? "sha256-NQwQzhazEOzoiyEkoRXWA3Ie/LPlAQRxGWEgJyBbxE0=",
 }:
 
 let
