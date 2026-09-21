@@ -25,11 +25,11 @@
     "termix-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1787168883,
-        "narHash": "sha256-EMlNHefF9cyniLPqt6NhK0kI1dQl5gh9YfXWFD3e5ZI=",
+        "lastModified": 1789934199,
+        "narHash": "sha256-vSQYvjgDwg8Mu6Y75fwC7KYN89C68lRg0ajP7Q3PFww=",
         "owner": "Termix-SSH",
         "repo": "Termix",
-        "rev": "0bef8b99b4bc06d38922bfec462473418a209f43",
+        "rev": "fef8a5f28a5a6023ff10832acb65cbdfea81b777",
         "type": "github"
       },
       "original": {
