@@ -6,21 +6,64 @@
   nodejs_24,
   python3,
   makeWrapper,
+  fetchurl,
   # The Termix source tree. Defaults to the pinned flake input but can be
   # overridden (e.g. with a local checkout) via `.override { src = ...; }`.
   src,
   # npmDepsHash for the npm dependency cache. Update with `nix build` and copy the
   # hash from the mismatch error, or run `prefetch-npm-deps package-lock.json`.
-  npmDepsHash ? "sha256-ahiyA+6jM/TnoMgVBvoLuPepKKDs3RcleL6T1cOtblI=",
+  npmDepsHash ? "sha256-hDPBAeSeOnPZHKfHlYwBPIbwjy8nO/QyG1d57X5Qz9M=",
+  # Which bundled-plugin tier to ship. Mirrors upstream's Docker image
+  # PLUGIN_PROFILE: minimal (only what the app needs to start), standard
+  # (the default) or full.
+  pluginProfile ? "standard",
 }:
 
 let
   nodejs = nodejs_24;
+
+  profileTiers = {
+    minimal = [ "minimal" ];
+    standard = [
+      "minimal"
+      "standard"
+    ];
+    full = [
+      "minimal"
+      "standard"
+      "full"
+    ];
+  };
+
+  bundledPlugins =
+    (builtins.fromJSON (builtins.readFile "${src}/docker/bundled-plugins.json")).plugins;
+
+  selectedPlugins = builtins.filter (
+    plugin: builtins.elem (plugin.tier or "full") profileTiers.${pluginProfile}
+  ) bundledPlugins;
+
+  # Upstream's build:plugins downloads each pinned .tmxplug from GitHub. Do that
+  # as fixed-output derivations instead so the main build stays sandboxed and
+  # offline, then seed the same cache file names the build script expects.
+  pluginArtifacts = map (plugin: {
+    inherit (plugin) id sha256;
+    src = fetchurl {
+      url = plugin.url;
+      hash = builtins.convertHash {
+        hash = "sha256:${plugin.sha256}";
+        toHashFormat = "sri";
+      };
+    };
+  }) selectedPlugins;
+
+  seedPlugins = lib.concatMapStringsSep "\n" (plugin: ''
+    install -m 0644 ${plugin.src} "node_modules/.cache/termix-bundled-plugins/${plugin.sha256}.tmxplug"
+  '') pluginArtifacts;
 in
 buildNpmPackage {
   pname = "termix";
   # Keep in sync with upstream package.json; surfaced as the app VERSION at runtime.
-  version = "2.7.0";
+  version = "26.11.0";
 
   inherit src npmDepsHash nodejs;
 
@@ -43,12 +86,12 @@ buildNpmPackage {
   # The Vite build is memory hungry; match the headroom the upstream Dockerfile uses.
   env.NODE_OPTIONS = "--max-old-space-size=4096";
 
-  # Upstream's postinstall runs Electron-oriented patches we don't need. The one we
-  # *do* need at runtime is patch-guacamole-lite (guacd 1.6.0 protocol support); run
-  # it explicitly before building. (Native better-sqlite3 is compiled by npm ci's
-  # own install scripts, which buildNpmPackage runs.)
+  # Upstream's `npm run build` also stages the bundled plugins by downloading
+  # their pinned .tmxplug artifacts. Fill the build script's download cache from
+  # the fixed-output derivations above first.
   preBuild = ''
-    node scripts/patch-guacamole-lite.cjs || true
+      mkdir -p node_modules/.cache/termix-bundled-plugins
+    ${seedPlugins}
   '';
 
   # `npm run build` = vite build (-> dist) + tsc -p tsconfig.node.json (-> dist/backend)
@@ -65,14 +108,24 @@ buildNpmPackage {
     # --- frontend output: the static SPA assets ---
     mkdir -p $frontend
     cp -r dist/* $frontend/
-    # dist/ also contains the compiled backend before pruning; drop it from frontend.
-    rm -rf $frontend/backend
+    # dist/ also contains the compiled backend and plugins; nginx only serves
+    # the SPA assets, while the backend reads those from its own output.
+    rm -rf $frontend/backend $frontend/plugins
 
     # --- backend output ---
     app=$out/lib/termix
     mkdir -p $app/dist
     cp -r dist/backend $app/dist/backend
+    cp -r dist/plugins $app/dist/plugins
     cp package.json $app/package.json
+
+    # The plugin SDK is an npm workspace linked from node_modules, and both the
+    # core backend and bundled plugins import it at runtime. Ship the workspace
+    # package (including its built dist and CLI) next to the copied
+    # node_modules, like upstream's Dockerfile.
+    mkdir -p $app/packages/plugin-sdk
+    cp -r packages/plugin-sdk/. $app/packages/plugin-sdk/
+    rm -rf $app/packages/plugin-sdk/node_modules
 
     # Prune dev dependencies, keeping the compiled better-sqlite3 binding.
     npm prune --omit=dev --legacy-peer-deps
