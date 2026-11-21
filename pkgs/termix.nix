@@ -12,7 +12,7 @@
   src,
   # npmDepsHash for the npm dependency cache. Update with `nix build` and copy the
   # hash from the mismatch error, or run `prefetch-npm-deps package-lock.json`.
-  npmDepsHash ? "sha256-hDPBAeSeOnPZHKfHlYwBPIbwjy8nO/QyG1d57X5Qz9M=",
+  npmDepsHash ? "sha256-CAjmbL2v3hm+5gn20k79hFh0R6eEndQkQ6/ZvqV4zxg=",
   # Which bundled-plugin tier to ship. Mirrors upstream's Docker image
   # PLUGIN_PROFILE: minimal (only what the app needs to start), standard
   # (the default) or full.
@@ -63,7 +63,7 @@ in
 buildNpmPackage {
   pname = "termix";
   # Keep in sync with upstream package.json; surfaced as the app VERSION at runtime.
-  version = "26.11.0";
+  version = "26.11.3";
 
   inherit src npmDepsHash nodejs;
 
